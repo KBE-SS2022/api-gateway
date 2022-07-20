@@ -1,0 +1,14 @@
+server:
+  port: 8090
+spring:
+  h2:
+    console:
+      enabled: true
+
+
+keycloak:
+  realm: kbe-api
+  auth-server-url: http://localhost:8080
+  resource: app-vue
+  public-client: true
+  bearer-only: true
