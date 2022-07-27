@@ -1,38 +1,40 @@
 package com.kbe.apigateway.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kbe.apigateway.dto.CompletePizzaDTO;
 import com.kbe.apigateway.dto.IngredientDTO;
 import com.kbe.apigateway.dto.PizzaDTO;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class PizzaConverterService {
+public class PizzaCompleterService {
 
-    public String completeIngredientList(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs)
-            throws JSONException, JsonProcessingException {
+    public CompletePizzaDTO completeIngredientList(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs) {
+
+        CompletePizzaDTO completePizzaDTO = new CompletePizzaDTO();
+        Long id = pizzaDTO.getId();
+        String name = pizzaDTO.getName();
         List<IngredientDTO> pizzaIngredients = findIngredients(pizzaDTO, ingredientDTOs);
-        JSONObject properPizza = removeIdPriceMap(pizzaDTO);
-        properPizza.put("ingredients", pizzaIngredients);
+        completePizzaDTO.setId(id);
+        completePizzaDTO.setName(name);
+        completePizzaDTO.setIngredientDTOList(pizzaIngredients);
 
-        return properPizza.toString();
+        return completePizzaDTO;
     }
 
-    public List<String> completeIngredientListForPizzaList(List<PizzaDTO> pizzaDTOList, List<IngredientDTO> ingredientDTOs)
-            throws JSONException, JsonProcessingException {
-        List<String> properPizzaList = new ArrayList<>();
+    public List<CompletePizzaDTO> completeIngredientListForPizzaList(List<PizzaDTO> pizzaDTOList, List<IngredientDTO> ingredientDTOs) {
+        List<CompletePizzaDTO> completePizzaDTOList = new ArrayList<>();
 
         for(PizzaDTO x : pizzaDTOList) {
-            String properPizza = completeIngredientList(x, ingredientDTOs);
-            properPizzaList.add(properPizza);
+            CompletePizzaDTO completePizza = completeIngredientList(x, ingredientDTOs);
+            completePizzaDTOList.add(completePizza);
         }
 
-        return properPizzaList;
+        return completePizzaDTOList;
     }
 
     private List<IngredientDTO> findIngredients(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs) {
@@ -41,21 +43,24 @@ public class PizzaConverterService {
         List<IngredientDTO> matchingIngredients = ingredientDTOs.stream()
                 .filter(x -> ingredientIds.contains(x.getId()))
                 .toList();
+
         return matchingIngredients;
     }
 
-    private JSONObject removeIdPriceMap(PizzaDTO pizzaDTO) throws JsonProcessingException, JSONException {
-        ObjectMapper mapper = new ObjectMapper();
-        String pizzaString = mapper.writeValueAsString(pizzaDTO);
-        JSONObject jsonObject = new JSONObject(pizzaString);
-        jsonObject.remove("ingredientIdToPrice");
-        return jsonObject;
+    public CompletePizzaDTO addPriceToPizza(CompletePizzaDTO pizza, double price) {
+        pizza.setPrice(price);
+
+        return pizza;
     }
 
-    public String addPriceToPizza(JSONObject pizza, double price) throws JSONException {
-        pizza.put("price", price);
+    public List<CompletePizzaDTO> addPricesToPizzaList(List<CompletePizzaDTO> pizzaList, Map<Long, Double> idPriceMap) {
+       for (CompletePizzaDTO x : pizzaList) {
+           Long id = x.getId();
+           Double price = idPriceMap.get(id);
+           x.setPrice(price);
+       }
 
-        return pizza.toString();
+       return pizzaList;
     }
 
 }
