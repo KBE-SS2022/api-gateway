@@ -57,17 +57,12 @@ public class PizzaGatewayController {
         return new ResponseEntity<>(pizzaListAsString, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/createPizza/{currency}", produces = "application/json")
+    @PostMapping(path = "/createPizza", produces = "application/json")
     @RolesAllowed("user")
-    public ResponseEntity<PizzaDTO> createPizza(@RequestBody JSONObject frontendPizza, @PathVariable String currency) throws JSONException, JsonProcessingException {
+    public ResponseEntity<PizzaDTO> createPizza(@RequestBody PizzaDTO pizza) throws JSONException, JsonProcessingException {
         Long id = new Random().nextLong(999) + 1; //zwischen 1 und 1000
-        frontendPizza.put("id", id);
-        String pizzaString = frontendPizza.toString();
-        ObjectMapper objectMapper = new ObjectMapper();
-        PizzaDTO pizzaDTO = objectMapper.readValue(pizzaString, PizzaDTO.class);
-
-        ResponseEntity<PizzaDTO> responsePizza = pizzaProducer.createPizza(pizzaDTO);
-
+        pizza.setId(id);
+        ResponseEntity<PizzaDTO> responsePizza = pizzaProducer.createPizza(pizza);
         return responsePizza;
     }
 }
