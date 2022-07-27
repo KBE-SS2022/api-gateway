@@ -1,26 +1,35 @@
 package com.kbe.apigateway.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.kbe.apigateway.dto.CompletePizzaDTO;
 import com.kbe.apigateway.dto.IngredientDTO;
 import com.kbe.apigateway.dto.PizzaDTO;
-import org.json.JSONException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class PizzaCompleterService {
 
-    public CompletePizzaDTO completeIngredientList(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs) {
+    private List<IngredientDTO> findIngredients(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs) {
+        Map<Long, Double> ingredientsMap = pizzaDTO.getIngredientIdToPrice();
+        Set<Long> ingredientIds = ingredientsMap.keySet();
+        List<IngredientDTO> matchingIngredients = ingredientDTOs.stream()
+                .filter(ingredient -> ingredientIds.contains(ingredient.getId()))
+                .toList();
 
+        return matchingIngredients;
+    }
+
+    public CompletePizzaDTO completeIngredientList(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs) {
         CompletePizzaDTO completePizzaDTO = new CompletePizzaDTO();
         Long id = pizzaDTO.getId();
         String name = pizzaDTO.getName();
         List<IngredientDTO> pizzaIngredients = findIngredients(pizzaDTO, ingredientDTOs);
+
         completePizzaDTO.setId(id);
         completePizzaDTO.setName(name);
         completePizzaDTO.setIngredients(pizzaIngredients);
@@ -29,40 +38,23 @@ public class PizzaCompleterService {
     }
 
     public List<CompletePizzaDTO> completeIngredientListForPizzaList(List<PizzaDTO> pizzaDTOList, List<IngredientDTO> ingredientDTOs) {
-        List<CompletePizzaDTO> completePizzaDTOList = new ArrayList<>();
-
-        for(PizzaDTO x : pizzaDTOList) {
-            CompletePizzaDTO completePizza = completeIngredientList(x, ingredientDTOs);
-            completePizzaDTOList.add(completePizza);
-        }
-
+        List<CompletePizzaDTO> completePizzaDTOList = pizzaDTOList.stream()
+                .map(pizzaDTO -> completeIngredientList(pizzaDTO, ingredientDTOs))
+                .collect(Collectors.toList());
         return completePizzaDTOList;
     }
 
-    private List<IngredientDTO> findIngredients(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs) {
-        Map<Long, Double> ingredientsMap = pizzaDTO.getIngredientIdToPrice();
-        Set<Long> ingredientIds = ingredientsMap.keySet();
-        List<IngredientDTO> matchingIngredients = ingredientDTOs.stream()
-                .filter(x -> ingredientIds.contains(x.getId()))
-                .toList();
-
-        return matchingIngredients;
-    }
-
-    public CompletePizzaDTO addPriceToPizza(CompletePizzaDTO pizza, double price) {
-        pizza.setPrice(price);
-
-        return pizza;
-    }
-
     public List<CompletePizzaDTO> addPricesToPizzaList(List<CompletePizzaDTO> pizzaList, Map<Long, Double> idPriceMap) {
-       for (CompletePizzaDTO x : pizzaList) {
-           Long id = x.getId();
-           Double price = idPriceMap.get(id);
-           x.setPrice(price);
-       }
-
-       return pizzaList;
+        List<CompletePizzaDTO> pizzaDTOListWithPrices = pizzaList.stream()
+                .map(pizza -> {
+                    Long id = pizza.getId();
+                    Double price = idPriceMap.get(id);
+                    pizza.setPrice(price);
+                    return pizza;
+                })
+                .collect(Collectors.toList());
+       return pizzaDTOListWithPrices;
     }
+
 
 }

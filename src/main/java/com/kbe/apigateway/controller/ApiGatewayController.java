@@ -1,4 +1,5 @@
 package com.kbe.apigateway.controller;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kbe.apigateway.dto.CompletePizzaDTO;
@@ -23,63 +24,64 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.security.RolesAllowed;
 import java.util.*;
 
-
-@RestController
 @CrossOrigin
+@RestController
 @RequestMapping
 public class ApiGatewayController {
 
     @Autowired
-    IngredientConverterService ingredientConverterService;
+    private IngredientConverterService ingredientConverterService;
     @Autowired
-    PizzaConverterService pizzaConverterService;
+    private PizzaConverterService pizzaConverterService;
     @Autowired
-    PizzaCompleterService pizzaCompleterService;
+    private PizzaCompleterService pizzaCompleterService;
     @Autowired
-    PriceAdjustmentService priceAdjustmentService;
-    @Autowired
-    IngredientProducer ingredientProducer;
-    @Autowired
-    PizzaProducer pizzaProducer;
-    @Autowired
-    CurrencyProducer currencyProducer;
-    @Autowired
-    PriceProducer priceProducer;
+    private PriceAdjustmentService priceAdjustmentService;
 
-    @RequestMapping("/ingredient/{id}/{currencies}")
-    @GetMapping
+    @Autowired
+    private IngredientProducer ingredientProducer;
+    @Autowired
+    private PizzaProducer pizzaProducer;
+    @Autowired
+    private PriceProducer priceProducer;
+    @Autowired
+    private CurrencyProducer currencyProducer;
+
+
+    @GetMapping(path = "/ingredient/{id}/{currency}", produces = "application/json")
     @RolesAllowed("user")
-    public ResponseEntity<String> getIngredientById(@PathVariable(value = "id") Long id, @PathVariable String currencies) throws JSONException, JsonProcessingException {
+    public ResponseEntity<String> getIngredientById(@PathVariable(value = "id") Long id, @PathVariable String currency) throws JSONException, JsonProcessingException {
         ResponseEntity<IngredientDTO> receivedDTO = ingredientProducer.getIngredientByID(id);
         IngredientDTO ingredientDTO = receivedDTO.getBody();
-        String ingredientAsString = ingredientConverterService.mapIngredientDTOtoJson(ingredientDTO);
-        double rate = adjustCurrency(currencies);
+        double rate = adjustCurrency(currency);
+        String ingredientAsString;
+
         if(rate != 1.0) {
-            String adjustedIngredient = priceAdjustmentService.adjustPrice(ingredientAsString, rate);
-            return new ResponseEntity<>(adjustedIngredient, HttpStatus.OK);
+            IngredientDTO adjustedIngredient = priceAdjustmentService.adjustIngredientPrice(ingredientDTO, rate);
+            ingredientAsString = ingredientConverterService.mapIngredientDTOToJson(adjustedIngredient);
         }
+        else ingredientAsString = ingredientConverterService.mapIngredientDTOToJson(ingredientDTO);
 
         return new ResponseEntity<>(ingredientAsString, HttpStatus.OK);
     }
-/*
-    @RequestMapping("/ingredient/{currencies}")
-    @GetMapping
+
+    @GetMapping(path = "/ingredient/{currency}", produces = "application/json")
     @RolesAllowed("user")
-    public ResponseEntity<List<String>> getIngredients(@PathVariable String currencies) throws JsonProcessingException, JSONException {
+    public ResponseEntity<String> getIngredients(@PathVariable String currencies) throws JsonProcessingException, JSONException {
         ResponseEntity<List<IngredientDTO>> receivedDTOList = ingredientProducer.getIngredients();
         List<IngredientDTO> ingredientDTOList = receivedDTOList.getBody();
-        List<String> ingredientListAsString = ingredientConverterService.mapIngredientDTOListToJson(ingredientDTOList);
         double rate = adjustCurrency(currencies);
+        String ingredientListAsString;
         if(rate != 1.0) {
-            List<String> adjustedIngredientList = priceAdjustmentService.adjustListPrice(ingredientListAsString, rate);
-            return new ResponseEntity<>(adjustedIngredientList, HttpStatus.OK);
+            List<IngredientDTO> adjustedIngredientList = priceAdjustmentService.adjustIngredientListPrice(ingredientDTOList, rate);
+            ingredientListAsString = ingredientConverterService.mapIngredientDTOListToJson(adjustedIngredientList);
         }
+        else ingredientListAsString = ingredientConverterService.mapIngredientDTOListToJson(ingredientDTOList);
 
         return new ResponseEntity<>(ingredientListAsString, HttpStatus.OK);
     }
 
-    @RequestMapping("/pizza/{id}/{currencies}")
-    @GetMapping
+    @GetMapping(path = "/pizza/{id}/{currency}", produces = "application/json")
     @RolesAllowed("user")
     public ResponseEntity<String> getPizzaById(@PathVariable(value = "id") Long id, @PathVariable String currencies) throws JSONException, JsonProcessingException {
         ResponseEntity<PizzaDTO> receivedDTO = pizzaProducer.getPizzaByID(id);
@@ -92,25 +94,23 @@ public class ApiGatewayController {
         ResponseEntity<Map<Long,Double>> receivedPrice = priceProducer.getPrice(pizzaDTO);
         Map<Long,Double> priceMap = receivedPrice.getBody();
         double price = priceMap.get(id);
-        CompletePizzaDTO completePizza = pizzaCompleterService.addPriceToPizza(pizzaWithIngredients, price);
-
-        String pizzaAsString = pizzaConverterService.mapCompletePizzaDTOtoJson(completePizza);
+        pizzaWithIngredients.setPrice(price);
+        String pizzaAsString;
 
         double rate = adjustCurrency(currencies);
         if(rate != 1.0) {
-            String adjustedPizza = priceAdjustmentService.adjustPrice(pizzaAsString, rate);
-            return new ResponseEntity<>(adjustedPizza, HttpStatus.OK);
+            CompletePizzaDTO adjustedPizza = priceAdjustmentService.adjustPizzaPrice(pizzaWithIngredients, rate);
+            pizzaAsString = pizzaConverterService.mapCompletePizzaDTOToJson(adjustedPizza);
         }
+        else pizzaAsString = pizzaConverterService.mapCompletePizzaDTOToJson(pizzaWithIngredients);
 
         return new ResponseEntity<>(pizzaAsString, HttpStatus.OK);
     }
-*/
-    @RequestMapping(path = "/pizza/{currencies}", produces = "application/json")
-    @GetMapping
+
+    @GetMapping(path = "/pizza/{currency}", produces = "application/json")
     @RolesAllowed("user")
-    public ResponseEntity<String> getPizzas(@PathVariable String currencies) throws JSONException, JsonProcessingException {
+    public ResponseEntity<String> getPizzas(@PathVariable String currencies) throws JsonProcessingException {
         ResponseEntity<List<PizzaDTO>> receivedDTOList = pizzaProducer.getPizzas();
-        System.out.println(receivedDTOList);
         List<PizzaDTO> pizzaDTOList = receivedDTOList.getBody();
 
         ResponseEntity<List<IngredientDTO>> receivedIngredientList = ingredientProducer.getIngredients();
@@ -130,7 +130,7 @@ public class ApiGatewayController {
         double rate = adjustCurrency(currencies);
         String returnString;
         if(rate != 1.0) {
-            List<CompletePizzaDTO> adjustedPizzaList = priceAdjustmentService.adjustListPrice(pizzasWithPriceAndIngredients, rate);
+            List<CompletePizzaDTO> adjustedPizzaList = priceAdjustmentService.adjustPizzaListPrice(pizzasWithPriceAndIngredients, rate);
             returnString = pizzaConverterService.mapCompletePizzaDTOListToJson(adjustedPizzaList);
         }
         returnString = pizzaConverterService.mapCompletePizzaDTOListToJson(pizzasWithPriceAndIngredients);
@@ -138,10 +138,9 @@ public class ApiGatewayController {
         return new ResponseEntity<>(returnString, HttpStatus.OK);
     }
 
-    @PostMapping("/createPizza/{currencies}")
-    @GetMapping
+    @PostMapping("/createPizza/{currency}")
     @RolesAllowed("user")
-    public HttpStatus createPizza(@RequestBody JSONObject frontendPizza, @PathVariable String currencies) throws JSONException, JsonProcessingException {
+    public ResponseEntity<PizzaDTO> createPizza(@RequestBody JSONObject frontendPizza, @PathVariable String currencies) throws JSONException, JsonProcessingException {
         Long id = new Random().nextLong(); //zwischen 1 und 10000
         frontendPizza.put("id", id);
         String pizzaString = frontendPizza.toString();
@@ -150,7 +149,7 @@ public class ApiGatewayController {
 
         ResponseEntity<PizzaDTO> responsePizza = pizzaProducer.createPizza(pizzaDTO);
 
-        return responsePizza.getStatusCode();
+        return responsePizza;
     }
 
     public double adjustCurrency(String currency) {

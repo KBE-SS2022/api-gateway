@@ -17,4 +17,10 @@ public class PizzaConverterService {
         String completePizzaDTOListString = mapper.writeValueAsString(completePizzaDTOList);
         return completePizzaDTOListString;
     }
+
+    public String mapCompletePizzaDTOToJson(CompletePizzaDTO completePizzaDTO) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        String completePizzaDTOListString = mapper.writeValueAsString(completePizzaDTO);
+        return completePizzaDTOListString;
+    }
 }

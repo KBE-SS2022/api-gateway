@@ -15,41 +15,31 @@ import java.util.stream.Collectors;
 @Service
 public class PriceAdjustmentService {
 
-    private double originalPrice;
-
-    public String adjustPrice(String dto, double rate) throws JSONException {
-        JSONObject jsonDTO = new JSONObject(dto);
-        originalPrice = jsonDTO.getDouble("price");
-        jsonDTO.put("price", originalPrice * rate);
-
-        return jsonDTO.toString();
-    }
-
-   /* public List<String> adjustListPrice(List<String> dtoList, double rate) throws JSONException {
-        for(String x : dtoList) {
-            adjustPrice(x, rate);
-        }
-        return dtoList;
-    }*/
-
-    public CompletePizzaDTO adjustPrice(CompletePizzaDTO dto, double rate) {
+    public CompletePizzaDTO adjustPizzaPrice(CompletePizzaDTO dto, double rate) {
         Double adjustedPrice = dto.getPrice() * rate;
-        CompletePizzaDTO adjustedPizza = new CompletePizzaDTO(
-                dto.getId(),
-                dto.getName(),
-                adjustedPrice,
-                dto.getIngredients());
-        return  adjustedPizza;
+        dto.setPrice(adjustedPrice);
+        return dto;
     }
 
-    public List<CompletePizzaDTO> adjustListPrice(List<CompletePizzaDTO> dtoList, double rate) {
+    public IngredientDTO adjustIngredientPrice(IngredientDTO dto, double rate) {
+        double adjustedPrice = dto.getPrice() * rate;
+        dto.setPrice(adjustedPrice);
+        return dto;
+    }
+
+    public List<CompletePizzaDTO> adjustPizzaListPrice(List<CompletePizzaDTO> dtoList, double rate) {
         return dtoList.stream()
-                .map(pizzaDTO -> adjustPrice(pizzaDTO, rate))
+                .map(pizza -> adjustPizzaPrice(pizza, rate))
+                .collect(Collectors.toList());
+    }
+
+    public List<IngredientDTO> adjustIngredientListPrice(List<IngredientDTO> dtoList, double rate) {
+        return dtoList.stream()
+                .map(ingredient -> adjustIngredientPrice(ingredient, rate))
                 .collect(Collectors.toList());
     }
 
     public boolean checkIfPriceNeedsAdjusting(String currency) {
-        if(currency.equals("EUR")) return false;
-        return true;
+        return !currency.equals("EUR");
     }
 }
