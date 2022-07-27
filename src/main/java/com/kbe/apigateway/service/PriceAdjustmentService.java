@@ -1,12 +1,10 @@
 package com.kbe.apigateway.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kbe.apigateway.dto.CompletePizzaDTO;
 import com.kbe.apigateway.dto.IngredientDTO;
-import com.kbe.apigateway.dto.PizzaDTO;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.kbe.apigateway.messageproducer.producer.CurrencyProducer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,31 +13,44 @@ import java.util.stream.Collectors;
 @Service
 public class PriceAdjustmentService {
 
-    public CompletePizzaDTO adjustPizzaPrice(CompletePizzaDTO dto, double rate) {
-        Double adjustedPrice = dto.getPrice() * rate;
-        dto.setPrice(adjustedPrice);
-        return dto;
+    @Autowired
+    private CurrencyProducer currencyProducer;
+
+    public CompletePizzaDTO adjustPizzaPrice(CompletePizzaDTO pizza, double rate) {
+        Double adjustedPrice = pizza.getPrice() * rate;
+        pizza.setPrice(adjustedPrice);
+        return pizza;
     }
 
-    public IngredientDTO adjustIngredientPrice(IngredientDTO dto, double rate) {
-        double adjustedPrice = dto.getPrice() * rate;
-        dto.setPrice(adjustedPrice);
-        return dto;
+    public IngredientDTO adjustIngredientPrice(IngredientDTO ingredient, double rate) {
+        double adjustedPrice = ingredient.getPrice() * rate;
+        ingredient.setPrice(adjustedPrice);
+        return ingredient;
     }
 
-    public List<CompletePizzaDTO> adjustPizzaListPrice(List<CompletePizzaDTO> dtoList, double rate) {
-        return dtoList.stream()
+    public List<CompletePizzaDTO> adjustPizzasPrice(List<CompletePizzaDTO> pizzaList, double rate) {
+        return pizzaList.stream()
                 .map(pizza -> adjustPizzaPrice(pizza, rate))
                 .collect(Collectors.toList());
     }
 
-    public List<IngredientDTO> adjustIngredientListPrice(List<IngredientDTO> dtoList, double rate) {
-        return dtoList.stream()
+    public List<IngredientDTO> adjustIngredientsPrice(List<IngredientDTO> indredientList, double rate) {
+        return indredientList.stream()
                 .map(ingredient -> adjustIngredientPrice(ingredient, rate))
                 .collect(Collectors.toList());
     }
 
-    public boolean checkIfPriceNeedsAdjusting(String currency) {
+    public double adjustCurrency(String currency) {
+        if(isCurrencyChanged(currency)) {
+            String currencies = "EUR_" + currency;
+            ResponseEntity<Double> receivedRate = currencyProducer.getCurrency(currencies);
+            double rate = receivedRate.getBody();
+            return rate;
+        }
+        return 1.0;
+    }
+
+    private boolean isCurrencyChanged(String currency) {
         return !currency.equals("EUR");
     }
 }

@@ -14,13 +14,11 @@ public class PizzaConverterService {
 
     public String mapCompletePizzaDTOListToJson(List<CompletePizzaDTO> completePizzaDTOList) throws JsonProcessingException{
         ObjectMapper mapper = new ObjectMapper();
-        String completePizzaDTOListString = mapper.writeValueAsString(completePizzaDTOList);
-        return completePizzaDTOListString;
+        return mapper.writeValueAsString(completePizzaDTOList);
     }
 
     public String mapCompletePizzaDTOToJson(CompletePizzaDTO completePizzaDTO) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        String completePizzaDTOListString = mapper.writeValueAsString(completePizzaDTO);
-        return completePizzaDTOListString;
+        return mapper.writeValueAsString(completePizzaDTO);
     }
 }

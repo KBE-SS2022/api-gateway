@@ -14,17 +14,7 @@ import java.util.stream.Collectors;
 @Service
 public class PizzaCompleterService {
 
-    private List<IngredientDTO> findIngredients(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs) {
-        Map<Long, Double> ingredientsMap = pizzaDTO.getIngredientIdToPrice();
-        Set<Long> ingredientIds = ingredientsMap.keySet();
-        List<IngredientDTO> matchingIngredients = ingredientDTOs.stream()
-                .filter(ingredient -> ingredientIds.contains(ingredient.getId()))
-                .toList();
-
-        return matchingIngredients;
-    }
-
-    public CompletePizzaDTO completeIngredientList(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs) {
+    public CompletePizzaDTO completeIngredients(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs) {
         CompletePizzaDTO completePizzaDTO = new CompletePizzaDTO();
         Long id = pizzaDTO.getId();
         String name = pizzaDTO.getName();
@@ -37,14 +27,14 @@ public class PizzaCompleterService {
         return completePizzaDTO;
     }
 
-    public List<CompletePizzaDTO> completeIngredientListForPizzaList(List<PizzaDTO> pizzaDTOList, List<IngredientDTO> ingredientDTOs) {
+    public List<CompletePizzaDTO> completeIngredientsForPizzas(List<PizzaDTO> pizzaDTOList, List<IngredientDTO> ingredientDTOs) {
         List<CompletePizzaDTO> completePizzaDTOList = pizzaDTOList.stream()
-                .map(pizzaDTO -> completeIngredientList(pizzaDTO, ingredientDTOs))
+                .map(pizzaDTO -> completeIngredients(pizzaDTO, ingredientDTOs))
                 .collect(Collectors.toList());
         return completePizzaDTOList;
     }
 
-    public List<CompletePizzaDTO> addPricesToPizzaList(List<CompletePizzaDTO> pizzaList, Map<Long, Double> idPriceMap) {
+    public List<CompletePizzaDTO> addPricesToPizzas(List<CompletePizzaDTO> pizzaList, Map<Long, Double> idPriceMap) {
         List<CompletePizzaDTO> pizzaDTOListWithPrices = pizzaList.stream()
                 .map(pizza -> {
                     Long id = pizza.getId();
@@ -56,5 +46,20 @@ public class PizzaCompleterService {
        return pizzaDTOListWithPrices;
     }
 
+    public CompletePizzaDTO addPriceToPizza(CompletePizzaDTO pizza, Map<Long,Double> idPriceMap) {
+        Long id = pizza.getId();
+        double price = idPriceMap.get(id);
+        pizza.setPrice(price);
+        return pizza;
+    }
 
+    private List<IngredientDTO> findIngredients(PizzaDTO pizzaDTO, List<IngredientDTO> ingredientDTOs) {
+        Map<Long, Double> ingredientsMap = pizzaDTO.getIngredientIdToPrice();
+        Set<Long> ingredientIds = ingredientsMap.keySet();
+        List<IngredientDTO> matchingIngredients = ingredientDTOs.stream()
+                .filter(ingredient -> ingredientIds.contains(ingredient.getId()))
+                .toList();
+
+        return matchingIngredients;
+    }
 }
