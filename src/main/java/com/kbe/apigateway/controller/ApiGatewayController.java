@@ -14,6 +14,7 @@ import com.kbe.apigateway.service.PizzaConverterService;
 import com.kbe.apigateway.service.PriceAdjustmentService;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,22 +24,32 @@ import javax.annotation.security.RolesAllowed;
 import java.util.*;
 
 
-@SpringBootApplication
 @RestController
 @CrossOrigin
-@RequestMapping("/hello")
+@RequestMapping
 public class ApiGatewayController {
 
+    @Autowired
     IngredientConverterService ingredientConverterService;
+    @Autowired
     PizzaConverterService pizzaConverterService;
+    @Autowired
     PizzaCompleterService pizzaCompleterService;
+    @Autowired
     PriceAdjustmentService priceAdjustmentService;
+    @Autowired
+    IngredientProducer ingredientProducer;
+    @Autowired
+    PizzaProducer pizzaProducer;
+    @Autowired
+    CurrencyProducer currencyProducer;
+    @Autowired
+    PriceProducer priceProducer;
 
     @RequestMapping("/ingredient/{id}/{currencies}")
     @GetMapping
     @RolesAllowed("user")
     public ResponseEntity<String> getIngredientById(@PathVariable(value = "id") Long id, @PathVariable String currencies) throws JSONException, JsonProcessingException {
-        IngredientProducer ingredientProducer = new IngredientProducer();
         ResponseEntity<IngredientDTO> receivedDTO = ingredientProducer.getIngredientByID(id);
         IngredientDTO ingredientDTO = receivedDTO.getBody();
         String ingredientAsString = ingredientConverterService.mapIngredientDTOtoJson(ingredientDTO);
@@ -55,7 +66,6 @@ public class ApiGatewayController {
     @GetMapping
     @RolesAllowed("user")
     public ResponseEntity<List<String>> getIngredients(@PathVariable String currencies) throws JsonProcessingException, JSONException {
-        IngredientProducer ingredientProducer = new IngredientProducer();
         ResponseEntity<List<IngredientDTO>> receivedDTOList = ingredientProducer.getIngredients();
         List<IngredientDTO> ingredientDTOList = receivedDTOList.getBody();
         List<String> ingredientListAsString = ingredientConverterService.mapIngredientDTOListToJson(ingredientDTOList);
@@ -72,16 +82,13 @@ public class ApiGatewayController {
     @GetMapping
     @RolesAllowed("user")
     public ResponseEntity<String> getPizzaById(@PathVariable(value = "id") Long id, @PathVariable String currencies) throws JSONException, JsonProcessingException {
-        PizzaProducer pizzaProducer = new PizzaProducer();
         ResponseEntity<PizzaDTO> receivedDTO = pizzaProducer.getPizzaByID(id);
         PizzaDTO pizzaDTO = receivedDTO.getBody();
 
-        IngredientProducer ingredientProducer = new IngredientProducer();
         ResponseEntity<List<IngredientDTO>> receivedDTOList = ingredientProducer.getIngredients();
         List<IngredientDTO> ingredientDTOList = receivedDTOList.getBody();
         CompletePizzaDTO pizzaWithIngredients = pizzaCompleterService.completeIngredientList(pizzaDTO, ingredientDTOList);
 
-        PriceProducer priceProducer = new PriceProducer();
         ResponseEntity<Map<Long,Double>> receivedPrice = priceProducer.getPrice(pizzaDTO);
         Map<Long,Double> priceMap = receivedPrice.getBody();
         double price = priceMap.get(id);
@@ -101,17 +108,14 @@ public class ApiGatewayController {
     @RequestMapping("/pizza/{currencies}")
     @GetMapping
     @RolesAllowed("user")
-    public ResponseEntity<List<String>> getPizzaById(@PathVariable String currencies) throws JSONException, JsonProcessingException {
-        PizzaProducer pizzaProducer = new PizzaProducer();
+    public ResponseEntity<List<String>> getPizzas(@PathVariable String currencies) throws JSONException, JsonProcessingException {
         ResponseEntity<List<PizzaDTO>> receivedDTOList = pizzaProducer.getPizzas();
         List<PizzaDTO> pizzaDTOList = receivedDTOList.getBody();
 
-        IngredientProducer ingredientProducer = new IngredientProducer();
         ResponseEntity<List<IngredientDTO>> receivedIngredientList = ingredientProducer.getIngredients();
         List<IngredientDTO> ingredientDTOList = receivedIngredientList.getBody();
         List<CompletePizzaDTO> pizzasWithIngredients = pizzaCompleterService.completeIngredientListForPizzaList(pizzaDTOList, ingredientDTOList);
 
-        PriceProducer priceProducer = new PriceProducer();
         Map<Long, Double> idPriceMapForAllPizzas = new HashMap<>();
         for (PizzaDTO x : pizzaDTOList) {
             ResponseEntity<Map<Long,Double>> receivedPrice = priceProducer.getPrice(x);
@@ -132,17 +136,16 @@ public class ApiGatewayController {
         return new ResponseEntity<>(pizzaListAsString, HttpStatus.OK);
     }
 
-    @PostMapping("/hello/createPizza/{currencies}")
+    @PostMapping("/createPizza/{currencies}")
     @GetMapping
     @RolesAllowed("user")
     public HttpStatus createPizza(@RequestBody JSONObject frontendPizza, @PathVariable String currencies) throws JSONException, JsonProcessingException {
-        Long id = new Random().nextLong();
+        Long id = new Random().nextLong(); //zwischen 1 und 10000
         frontendPizza.put("id", id);
         String pizzaString = frontendPizza.toString();
         ObjectMapper objectMapper = new ObjectMapper();
         PizzaDTO pizzaDTO = objectMapper.readValue(pizzaString, PizzaDTO.class);
 
-        PizzaProducer pizzaProducer = new PizzaProducer();
         ResponseEntity<PizzaDTO> responsePizza = pizzaProducer.createPizza(pizzaDTO);
 
         return responsePizza.getStatusCode();
@@ -150,7 +153,6 @@ public class ApiGatewayController {
 
     public double adjustCurrency(String currencies) {
         if(priceAdjustmentService.checkIfPriceNeedsAdjusting(currencies)) {
-            CurrencyProducer currencyProducer = new CurrencyProducer();
             ResponseEntity<Double> receivedRate = currencyProducer.getCurrency(currencies);
             double rate = receivedRate.getBody();
             return rate;

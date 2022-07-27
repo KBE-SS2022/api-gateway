@@ -6,9 +6,11 @@ import com.kbe.apigateway.dto.IngredientDTO;
 import com.kbe.apigateway.dto.PizzaDTO;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class PriceAdjustmentService {
 
     private double originalPrice;
@@ -30,7 +32,9 @@ public class PriceAdjustmentService {
 
     public boolean checkIfPriceNeedsAdjusting(String currencies) {
         String[] currencyArray = currencies.split("_");
-        if(currencyArray[0] == currencyArray[1])
+        String currency1 = currencyArray[0];
+        String currency2 = currencyArray[1];
+        if(currency1.equals(currency2))
             return false;
         else
             return true;
