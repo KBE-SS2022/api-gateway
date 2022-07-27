@@ -16,6 +16,7 @@
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -55,9 +56,12 @@
             <artifactId>android-json</artifactId>
             <version>0.0.20131108.vaadin1</version>
         </dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.6.4</version>
+		</dependency>
     </dependencies>
-
-
 
 	<dependencyManagement>
 		<dependencies>
@@ -71,8 +75,6 @@
 		</dependencies>
 	</dependencyManagement>
 
-
-
 	<build>
 		<plugins>
 			<plugin>
@@ -81,5 +83,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>

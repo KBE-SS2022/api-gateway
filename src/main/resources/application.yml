@@ -5,10 +5,9 @@ spring:
     console:
       enabled: true
 
-
 keycloak:
   realm: kbe-api
-  auth-server-url: http://localhost:8080
+  auth-server-url: http://localhost:8080/auth/
   resource: app-vue
   public-client: true
   bearer-only: true
