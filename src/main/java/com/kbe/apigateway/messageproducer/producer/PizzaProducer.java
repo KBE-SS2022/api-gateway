@@ -1,6 +1,6 @@
 package com.kbe.apigateway.messageproducer.producer;
 
-import messageproducer.config.Constant;
+import com.kbe.apigateway.messageproducer.config.Constant;
 import com.kbe.apigateway.dto.PizzaDTO;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;

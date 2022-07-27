@@ -1,4 +1,4 @@
-package messageproducer.config;
+package com.kbe.apigateway.messageproducer.config;
 
 public class Constant {
 

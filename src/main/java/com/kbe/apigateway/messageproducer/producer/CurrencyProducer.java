@@ -1,7 +1,6 @@
 package com.kbe.apigateway.messageproducer.producer;
 
-import messageproducer.config.Constant;
-import org.springframework.amqp.core.MessagePostProcessor;
+import com.kbe.apigateway.messageproducer.config.Constant;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;

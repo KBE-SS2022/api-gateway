@@ -61,7 +61,7 @@ public class ApiGatewayController {
 
         return new ResponseEntity<>(ingredientAsString, HttpStatus.OK);
     }
-
+/*
     @RequestMapping("/ingredient/{currencies}")
     @GetMapping
     @RolesAllowed("user")
@@ -104,12 +104,13 @@ public class ApiGatewayController {
 
         return new ResponseEntity<>(pizzaAsString, HttpStatus.OK);
     }
-
-    @RequestMapping("/pizza/{currencies}")
+*/
+    @RequestMapping(path = "/pizza/{currencies}", produces = "application/json")
     @GetMapping
     @RolesAllowed("user")
-    public ResponseEntity<List<String>> getPizzas(@PathVariable String currencies) throws JSONException, JsonProcessingException {
+    public ResponseEntity<String> getPizzas(@PathVariable String currencies) throws JSONException, JsonProcessingException {
         ResponseEntity<List<PizzaDTO>> receivedDTOList = pizzaProducer.getPizzas();
+        System.out.println(receivedDTOList);
         List<PizzaDTO> pizzaDTOList = receivedDTOList.getBody();
 
         ResponseEntity<List<IngredientDTO>> receivedIngredientList = ingredientProducer.getIngredients();
@@ -126,14 +127,15 @@ public class ApiGatewayController {
         }
         List<CompletePizzaDTO> pizzasWithPriceAndIngredients = pizzaCompleterService.addPricesToPizzaList(pizzasWithIngredients, idPriceMapForAllPizzas);
 
-        List<String> pizzaListAsString = pizzaConverterService.mapCompletePizzaDTOListToJson(pizzasWithPriceAndIngredients);
         double rate = adjustCurrency(currencies);
+        String returnString;
         if(rate != 1.0) {
-            List<String> adjustedPizzaList = priceAdjustmentService.adjustListPrice(pizzaListAsString, rate);
-            return new ResponseEntity<>(adjustedPizzaList, HttpStatus.OK);
+            List<CompletePizzaDTO> adjustedPizzaList = priceAdjustmentService.adjustListPrice(pizzasWithPriceAndIngredients, rate);
+            returnString = pizzaConverterService.mapCompletePizzaDTOListToJson(adjustedPizzaList);
         }
+        returnString = pizzaConverterService.mapCompletePizzaDTOListToJson(pizzasWithPriceAndIngredients);
 
-        return new ResponseEntity<>(pizzaListAsString, HttpStatus.OK);
+        return new ResponseEntity<>(returnString, HttpStatus.OK);
     }
 
     @PostMapping("/createPizza/{currencies}")
@@ -151,13 +153,13 @@ public class ApiGatewayController {
         return responsePizza.getStatusCode();
     }
 
-    public double adjustCurrency(String currencies) {
-        if(priceAdjustmentService.checkIfPriceNeedsAdjusting(currencies)) {
+    public double adjustCurrency(String currency) {
+        if(priceAdjustmentService.checkIfPriceNeedsAdjusting(currency)) {
+            String currencies = "EUR_" + currency;
             ResponseEntity<Double> receivedRate = currencyProducer.getCurrency(currencies);
             double rate = receivedRate.getBody();
             return rate;
         }
         return 1.0;
     }
-
 }

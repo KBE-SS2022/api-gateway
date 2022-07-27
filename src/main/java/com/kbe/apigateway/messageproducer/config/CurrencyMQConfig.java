@@ -1,4 +1,4 @@
-package messageproducer.config;
+package com.kbe.apigateway.messageproducer.config;
 
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;

@@ -46,14 +46,10 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter
     }
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception
-    {
-        //super.configure(http);
-        //http.authorizeRequests().anyRequest().permitAll();
+    protected void configure(HttpSecurity http) throws Exception {
+        System.out.println("#### TEST ####");
         super.configure(http);
-        http.authorizeRequests()
-                //.antMatchers("/employees*").hasRole("user")
-                .anyRequest().permitAll();
+        http.authorizeRequests().anyRequest().permitAll();
         http.csrf().disable();
     }
 }

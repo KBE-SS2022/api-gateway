@@ -12,18 +12,9 @@ import java.util.List;
 @Service
 public class PizzaConverterService {
 
-    public String mapCompletePizzaDTOtoJson(CompletePizzaDTO completePizzaDTO) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        String pizzaAsJson = objectMapper.writeValueAsString(completePizzaDTO);
-
-        return pizzaAsJson;
-    }
-
-    public List<String> mapCompletePizzaDTOListToJson(List<CompletePizzaDTO> completePizzaDTOList) throws JsonProcessingException{
-        List<String> pizzaListAsJson = new ArrayList<>();
-        for(CompletePizzaDTO x : completePizzaDTOList){
-            pizzaListAsJson.add(mapCompletePizzaDTOtoJson(x));
-        }
-        return pizzaListAsJson;
+    public String mapCompletePizzaDTOListToJson(List<CompletePizzaDTO> completePizzaDTOList) throws JsonProcessingException{
+        ObjectMapper mapper = new ObjectMapper();
+        String completePizzaDTOListString = mapper.writeValueAsString(completePizzaDTOList);
+        return completePizzaDTOListString;
     }
 }

@@ -1,4 +1,4 @@
-package messageproducer.config;
+package com.kbe.apigateway.messageproducer.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;

@@ -2,6 +2,7 @@ package com.kbe.apigateway.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kbe.apigateway.dto.CompletePizzaDTO;
 import com.kbe.apigateway.dto.IngredientDTO;
 import com.kbe.apigateway.dto.PizzaDTO;
 import org.json.JSONException;
@@ -9,6 +10,7 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PriceAdjustmentService {
@@ -23,21 +25,31 @@ public class PriceAdjustmentService {
         return jsonDTO.toString();
     }
 
-    public List<String> adjustListPrice(List<String> dtoList, double rate) throws JSONException {
+   /* public List<String> adjustListPrice(List<String> dtoList, double rate) throws JSONException {
         for(String x : dtoList) {
             adjustPrice(x, rate);
         }
         return dtoList;
+    }*/
+
+    public CompletePizzaDTO adjustPrice(CompletePizzaDTO dto, double rate) {
+        Double adjustedPrice = dto.getPrice() * rate;
+        CompletePizzaDTO adjustedPizza = new CompletePizzaDTO(
+                dto.getId(),
+                dto.getName(),
+                adjustedPrice,
+                dto.getIngredients());
+        return  adjustedPizza;
     }
 
-    public boolean checkIfPriceNeedsAdjusting(String currencies) {
-        String[] currencyArray = currencies.split("_");
-        String currency1 = currencyArray[0];
-        String currency2 = currencyArray[1];
-        if(currency1.equals(currency2))
-            return false;
-        else
-            return true;
+    public List<CompletePizzaDTO> adjustListPrice(List<CompletePizzaDTO> dtoList, double rate) {
+        return dtoList.stream()
+                .map(pizzaDTO -> adjustPrice(pizzaDTO, rate))
+                .collect(Collectors.toList());
     }
 
+    public boolean checkIfPriceNeedsAdjusting(String currency) {
+        if(currency.equals("EUR")) return false;
+        return true;
+    }
 }

@@ -23,7 +23,7 @@ public class PizzaCompleterService {
         List<IngredientDTO> pizzaIngredients = findIngredients(pizzaDTO, ingredientDTOs);
         completePizzaDTO.setId(id);
         completePizzaDTO.setName(name);
-        completePizzaDTO.setIngredientDTOList(pizzaIngredients);
+        completePizzaDTO.setIngredients(pizzaIngredients);
 
         return completePizzaDTO;
     }
