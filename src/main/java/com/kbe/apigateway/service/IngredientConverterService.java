@@ -6,20 +6,28 @@ import com.kbe.apigateway.dto.IngredientDTO;
 import com.kbe.apigateway.dto.PizzaDTO;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
 public class TransformationService {
 
+    @Autowired
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    public JSONObject mapIngredientDTOtoJson(IngredientDTO ingredientDTO) throws JsonProcessingException, JSONException {
+    public String mapIngredientDTOtoJson(IngredientDTO ingredientDTO) throws JsonProcessingException {
         String ingredientAsJson = objectMapper.writeValueAsString(ingredientDTO);
 
-        return new JSONObject(ingredientAsJson);
+        return ingredientAsJson;
     }
 
-    public JSONObject mapPizzaDTOtoJson(PizzaDTO pizzaDTO) throws JsonProcessingException, JSONException {
+    public String mapPizzaDTOtoJson(PizzaDTO pizzaDTO) throws JsonProcessingException {
         String pizzaAsJson = objectMapper.writeValueAsString(pizzaDTO);
 
-        return new JSONObject(pizzaAsJson);
+        return pizzaAsJson;
     }
+
 }
